@@ -1,0 +1,6 @@
+.rvmrc
+log/*
+tmp
+.idea
+*.iml
+
