@@ -1,1 +1,6 @@
+gem install sinatra
+gem install json
+gem install rack
+gem install haml
+
 run with 'rackup -p 4567'
