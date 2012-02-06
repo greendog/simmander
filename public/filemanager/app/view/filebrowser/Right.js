@@ -1,17 +1,18 @@
 Ext.define('FileManager.view.filebrowser.Right', {
-    id: 'filesPanel',
+    id: 'rightFilesGrid',
     extend:'Ext.grid.Panel',
     alias:'widget.rightList',
     title: 'Файлы',
-    store:'FilesStore'
+    store:'RightFilesStore'
     ,stripeRows: true
     ,initComponent:function() {
         var columns = [
             {
                 header:'Name',
-                dataIndex:'filename',
-                flex:1,
+                dataIndex:'name',
+                flex:2,
                 sortable: true,
+                renderer:renderIcon,
                 field:
                 {
                     xtype:'textfield',
@@ -22,8 +23,8 @@ Ext.define('FileManager.view.filebrowser.Right', {
             },
             {
                 header:'Size',
-                dataIndex:'filesize',
-                width    : 75,
+                dataIndex:'size',
+                flex:1,
                 field:
                 {
                     xtype:'textfield',
@@ -31,14 +32,8 @@ Ext.define('FileManager.view.filebrowser.Right', {
                     selectOnFocus:true,
                     minLength:2
                 }
-            },
-            {
-                header:'Last Modified',
-                dataIndex:'filedate',
-                flex:2
             }
         ];
-
 
         var config = {
             columns: columns
@@ -54,3 +49,9 @@ Ext.define('FileManager.view.filebrowser.Right', {
     }
 
 });
+
+function renderIcon(value, meta, record, rowindx, colindx, store){
+    if(record.data.type == 'folder') var result = '<img class="x-tree-icon x-tree-icon-parent " style="vertical-align:top;margin-top:-2px;" src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" id="ext-gen1105">'+value;
+    if(record.data.type == 'file') var result = '<img class="x-tree-icon x-tree-icon-leaf "  style="vertical-align:top;margin-top:-2px;"src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==">' + value;
+    return result;
+}

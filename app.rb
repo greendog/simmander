@@ -1,4 +1,4 @@
-get '/' do
+get '/*' do
   erb :index
 end
 
@@ -6,50 +6,54 @@ get '/about' do
   erb :about
 end
 
-post '/get_folders.json' do
-  content_type :json
-  get_content(params[:node]).to_json
+post '/list.json' do
+  @abs_path = File.expand_path(params[:dir])
+
+  unless File.exists?(@abs_path)
+    return "#{@abs_path} does not exist!"
+  end
+
+  if (File.directory?(@abs_path)) then
+    {:items => folders.concat(files)}.to_json
+  else
+    send_file @abs_path
+  end
 end
 
-def get_content(path=".")
-  {:folders => get_dirs(path), :files => get_files(path)}
-end
-
-def get_dirs(path)
-  @path = File.join(File.expand_path(File.dirname(__FILE__)), path)
-  @dirs = []
-  if File.exists?(@path)
-    Dir.entries(@path).each do |dir|
-      if File.directory?(File.join(@path, dir)) && dir[0,1]!="."
-        el = {:id => File.join(path, dir),:text => dir, :leaf => false}
-        # если текущая папка не содержит вложенных папок, то присваиваем пустой массив:
-        # el[:folders] = [] if Dir.entries(File.join(@path, dir)).select {|entry| File.directory? File.join(File.join(@path, dir), entry) and !(entry =='.' || entry == '..') }.empty?
-        # другой способ:
-        # require "pathname"
-        # el[:folders] = [] Pathname.new('./').children.select { |c| c.directory? }.collect { |p| p.to_s }.empty?
-        @dirs << el
-      end
+def folders
+  items = []
+  Dir.entries(@abs_path).sort.each do |i|
+    next if (i == '.')
+    next if (i == '..') and @abs_path == File.expand_path(settings.media_dir)
+    if File.directory?(File.join(@abs_path, i))
+      items << {
+          :name => i,
+          :id => "#{@abs_path}/#{i}",
+          :size => '',
+          :type => 'folder'
+      }
     end
   end
-  @dirs
+
+  items
 end
 
-def get_files(path)
-  @path = File.join(File.expand_path(File.dirname(__FILE__)), path)
-  @files = []
-  if File.exists?(@path)
-    Dir.entries(@path).each do |file|
-      if File.file?(File.join(@path, file))
-        @files << {
-            :filename => file,
-            :filesize => file_size(File.join(@path, file)),
-            :filedate => File.mtime(File.join(@path, file))
-        }
-      end
+def files
+  items = []
+  Dir.entries(@abs_path).sort.each do |i|
+    if File.file?(File.join(@abs_path, i))
+      items << {
+          :name => i,
+          :id => "#{@abs_path}/#{i}",
+          :size => file_size(@abs_path),
+          :type => 'file'
+      }
     end
   end
-  @files
+
+  items
 end
+
 
 def file_size(path)
   size = File.size(path)
